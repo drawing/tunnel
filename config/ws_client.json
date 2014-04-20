@@ -1,0 +1,6 @@
+{
+	"RunMode" : "client",
+	"Server" : "127.0.0.1:8088",
+	"Client" : "127.0.0.1:8088",
+	"Network" : "ws"
+}
