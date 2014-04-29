@@ -2,7 +2,9 @@ package tools
 
 import (
 	"code.google.com/p/go.net/proxy"
+	"log"
 	"net"
+	"regexp"
 )
 
 type Location struct {
@@ -20,15 +22,58 @@ func (l *Location) String() string {
 }
 
 type Router struct {
-	domains []string
 	sock    net.Conn
 	writer  net.Conn
 	runner  map[int64]net.Conn
 	current int64
+
+	//match
+	namelist []string
+	iplist   []*net.IPNet
+
+	// conf
+	conf RouterConfig
+}
+
+func (r *Router) Init(conf RouterConfig) {
+	r.namelist = conf.DomainList
+	r.iplist = []*net.IPNet{}
+	r.runner = map[int64]net.Conn{}
+	r.conf = conf
+
+	for _, v := range conf.IPNetList {
+		_, net, err := net.ParseCIDR(v)
+		if err != nil {
+			log.Println("IPNet invalid:", v)
+			continue
+		}
+		r.iplist = append(r.iplist, net)
+	}
 }
 
 func (r *Router) Match(loc Location) bool {
-	return true
+	if loc.Address == "" {
+		// match domain
+		for _, v := range r.namelist {
+			matched, _ := regexp.MatchString(v, loc.Domain)
+			if matched {
+				return true
+			}
+		}
+	} else {
+		// match address
+		ip := net.ParseIP(loc.Address)
+		if ip == nil {
+			log.Println("loc address:", loc.Address)
+			return false
+		}
+		for _, v := range r.iplist {
+			if v.Contains(ip) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (r *Router) GenerateID() int64 {

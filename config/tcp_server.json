@@ -1,6 +1,8 @@
 {
-	"RunMode" : "server",
-	"Server" : "127.0.0.1:8088",
-	"Client" : "127.0.0.1:8080",
-	"Network" : "tcp"
+	"Router" : {
+		"IPNetList" : [],
+		"DomainList" : [".*.baidu.com"]
+	},
+	"MessageInf" : "127.0.0.1:8088",
+	"DataInf" : "127.0.0.1:9000"
 }

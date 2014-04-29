@@ -83,6 +83,10 @@ func ReadNetworkFromSocks5(socks5 net.Conn) (loc Location, err error) {
 	return loc, nil
 }
 
+func (s *Server) Init(conf ServerConfig) {
+	s.self.Init(conf.Router)
+}
+
 func (s *Server) TransitSocks5(client net.Conn) {
 	defer client.Close()
 
