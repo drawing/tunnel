@@ -10,8 +10,7 @@ import (
 )
 
 import (
-	"./protocol"
-	"./util"
+	"./tools"
 )
 
 type Config struct {
@@ -20,6 +19,8 @@ type Config struct {
 	Client  string
 	Network string
 }
+
+var server tools.Server
 
 func RunServerMode(config Config) {
 	var listener net.Listener
@@ -30,7 +31,7 @@ func RunServerMode(config Config) {
 			log.Fatalln("listen failed:", err)
 		}
 	} else {
-		listener, err = protocol.WebSocketListen(config.Network, config.Server)
+		listener, err = tools.WebSocketListen(config.Network, config.Server)
 		if err != nil {
 			log.Fatalln("listen failed:", err)
 		}
@@ -46,7 +47,7 @@ func RunServerMode(config Config) {
 
 		log.Println("new connection:", client.RemoteAddr().String())
 
-		go util.ServerReadTunnel(client)
+		go server.TransitSocks5(client)
 	}
 }
 
@@ -64,7 +65,7 @@ func RunClientMode(config Config) {
 			log.Fatalln("dial failed:", err)
 		}
 	} else {
-		server, err = protocol.WebSocketDial(config.Network, config.Server)
+		server, err = tools.WebSocketDial(config.Network, config.Server)
 		if err != nil {
 			log.Fatalln("dial failed:", err)
 		}
@@ -72,7 +73,7 @@ func RunClientMode(config Config) {
 
 	log.Println("running...")
 
-	manager := util.CreateConnMgr()
+	manager := tools.CreateConnMgr()
 
 	go func() {
 		for {
@@ -86,12 +87,12 @@ func RunClientMode(config Config) {
 
 			manager.Add(uint16(id), client)
 
-			wrapper := protocol.CreateTrans(server, uint16(id))
-			go util.Transmit(client, wrapper)
+			// wrapper := tools.CreateTrans(server, uint16(id))
+			// go util.Transmit(client, wrapper)
 		}
 	}()
 
-	util.ClientReadTunnel(server, manager)
+	tools.Transmit(server, server)
 }
 
 func main() {
@@ -110,9 +111,5 @@ func main() {
 		log.Fatalln("config:", err)
 	}
 
-	if config.RunMode == "server" {
-		RunServerMode(config)
-	} else {
-		RunClientMode(config)
-	}
+	RunServerMode(config)
 }

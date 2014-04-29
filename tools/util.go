@@ -1,4 +1,4 @@
-package util
+package tools
 
 import (
 	"log"
@@ -52,19 +52,19 @@ func (m *ConnMgr) Add(id uint16, conn net.Conn) error {
 	return nil
 }
 
-func Transmit(one net.Conn, two net.Conn) {
-	defer one.Close()
-	defer two.Close()
+func Transmit(from net.Conn, to net.Conn) {
+	defer from.Close()
+	defer to.Close()
 
 	trans := make([]byte, 4092)
 
 	for {
-		length, err := one.Read(trans)
+		length, err := from.Read(trans)
 		if err != nil || length == 0 {
 			break
 		}
 
-		l, err := two.Write(trans[0:length])
+		l, err := to.Write(trans[0:length])
 		if err != nil {
 			break
 		}
