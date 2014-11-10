@@ -27,7 +27,7 @@ func RunMessage(control net.Listener) {
 	}
 }
 
-func RunServerMode(config tools.ServerConfig) {
+func RunServerMode(config tools.TunConfig) {
 	var listener net.Listener
 	var err error
 
@@ -71,12 +71,11 @@ func main() {
 		log.Fatalln(os.Args[1], "file not found")
 	}
 
-	var config tools.ServerConfig
+	var config tools.TunConfig
 	err = json.Unmarshal(buffer, &config)
 	if err != nil {
 		log.Fatalln("config:", err)
 	}
 
-	server.Init(config)
 	RunServerMode(config)
 }

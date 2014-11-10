@@ -1,9 +1,9 @@
 {
     "Outgoing": [
         {
-            "Interface": "127.0.0.1:8080",
-            "Network": "tcp",
-            "DomainList": [
+            "Location": "127.0.0.1:8080",
+            "Protocol": "tcp",
+            "Domains": [
                 ".*.baidu.com",
                 "*.google.com"
             ]
@@ -11,8 +11,8 @@
     ],
     "Incoming": [
         {
-            "Interface": "127.0.0.1:9000",
-            "Network": "tcp"
+            "Location": "127.0.0.1:9000",
+            "Protocol": "tcp"
         }
     ]
 }

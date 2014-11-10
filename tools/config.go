@@ -1,13 +1,12 @@
 package tools
 
-type ServerConfig struct {
-	Router     RouterConfig
-	MessageInf string
-	DataInf    string
-	Routers    []string
+type Network struct {
+	Protocol string
+	Location string
+	Domains  []string
 }
 
-type RouterConfig struct {
-	IPNetList  []string
-	DomainList []string
+type TunConfig struct {
+	Outgoing []Network
+	Incoming []Network
 }
