@@ -138,6 +138,18 @@ func (r *Router) ReadFromRemote() {
 				conn.Close()
 			}
 			delete(r.runner, pkg.Id)
+		case PKG_KIND_ROUTER:
+			if pkg.Router != nil {
+				r.Init(*pkg.Router)
+			}
 		}
 	}
+}
+
+func (r *Router) SendRouterConfig() {
+	wrapper := CreateWrapper(r.sock, 0)
+	var pkg Package
+	pkg.Kind = PKG_KIND_ROUTER
+	pkg.Router = &r.conf
+	wrapper.WritePackage(&pkg)
 }

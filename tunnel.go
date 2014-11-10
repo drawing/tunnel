@@ -14,6 +14,19 @@ import (
 
 var server tools.Server
 
+func RunMessage(control net.Listener) {
+	for {
+		client, err := control.Accept()
+		if err != nil {
+			log.Fatalln("control accept failed:", err)
+		}
+
+		log.Println("new server:", client.RemoteAddr().String())
+
+		go server.AddRouter(client)
+	}
+}
+
 func RunServerMode(config tools.ServerConfig) {
 	var listener net.Listener
 	var err error
@@ -23,7 +36,18 @@ func RunServerMode(config tools.ServerConfig) {
 		log.Fatalln("listen failed:", err)
 	}
 
+	control, err := net.Listen("tcp", config.MessageInf)
+	if err != nil {
+		log.Fatalln("control failed:", err)
+	}
+
+	log.Println("connent...")
+
+	server.ConnectRouters()
+
 	log.Println("running...")
+
+	go RunMessage(control)
 
 	for {
 		client, err := listener.Accept()

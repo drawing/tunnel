@@ -4,6 +4,7 @@ type ServerConfig struct {
 	Router     RouterConfig
 	MessageInf string
 	DataInf    string
+	Routers    []string
 }
 
 type RouterConfig struct {

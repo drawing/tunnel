@@ -13,6 +13,8 @@ import (
 type Server struct {
 	self    Router
 	routers []Router
+
+	conf ServerConfig
 }
 
 func ReadNetworkFromSocks5(socks5 net.Conn) (loc Location, err error) {
@@ -85,6 +87,7 @@ func ReadNetworkFromSocks5(socks5 net.Conn) (loc Location, err error) {
 
 func (s *Server) Init(conf ServerConfig) {
 	s.self.Init(conf.Router)
+	s.conf = conf
 }
 
 func (s *Server) TransitSocks5(client net.Conn) {
@@ -123,4 +126,24 @@ func (s *Server) CreateRouterSock(loc Location) (net.Conn, error) {
 		}
 	}
 	return nil, errors.New("no such router")
+}
+
+func (s *Server) AddRouter(conn net.Conn) {
+	var r Router
+	var conf RouterConfig
+
+	r.sock = conn
+	r.Init(conf)
+	r.SendRouterConfig()
+	r.Work()
+}
+
+func (s *Server) ConnectRouters() {
+	for _, v := range s.conf.Routers {
+		conn, err := net.Dial("tcp", v)
+		if err != nil {
+			log.Println("connect error:", v)
+		}
+		s.AddRouter(conn)
+	}
 }

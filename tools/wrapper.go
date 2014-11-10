@@ -15,13 +15,15 @@ const (
 	PKG_KIND_CONNECT = iota
 	PKG_KIND_DATA
 	PKG_KIND_CLOSE
+	PKG_KIND_ROUTER
 )
 
 type Package struct {
-	Kind int
-	Id   int64
-	Data []byte
-	Addr *Location
+	Kind   int
+	Id     int64
+	Data   []byte
+	Addr   *Location
+	Router *RouterConfig
 }
 
 type WrapperConn struct {
