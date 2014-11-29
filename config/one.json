@@ -1,18 +1,24 @@
 {
-    "Outgoing": [
+    "Sources": [
         {
-            "Location": "127.0.0.1:8080",
-            "Protocol": "tcp",
-            "Domains": [
-                ".*.baidu.com",
-                "*.google.com"
-            ]
+            "Source" : {
+                "Category" : "Socks5",
+                "Location": "127.0.0.1:8080",
+                "Protocol": "tcp",
+            },
+            "Router" : {
+                "Domains": [
+                    ".*.baidu.com",
+                    "*.google.com"
+                ],
+                "IPList" : [
+                ],
+            }
         }
     ],
-    "Incoming": [
-        {
-            "Location": "127.0.0.1:9000",
-            "Protocol": "tcp"
-        }
-    ]
+    "Default": {
+        "Category" : "Socks5",
+        "Location": "127.0.0.1:8080",
+        "Protocol": "tcp",
+    }
 }

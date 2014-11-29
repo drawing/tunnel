@@ -1,4 +1,4 @@
-package tools
+package engine
 
 import (
 	"log"
@@ -11,7 +11,7 @@ type PipeConn struct {
 	writer net.Conn
 }
 
-func CreatePipe(reader net.Conn, writer net.Conn) net.Conn {
+func NewPipeConn(reader net.Conn, writer net.Conn) net.Conn {
 	return &PipeConn{reader, writer}
 }
 

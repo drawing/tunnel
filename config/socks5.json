@@ -1,0 +1,11 @@
+{
+    "Sources": [
+        {
+            "Source": {
+                "Category": "Socks5",
+                "Location": "127.0.0.1:8080",
+                "Protocol": "tcp"
+            }
+        }
+    ]
+}

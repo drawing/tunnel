@@ -4,61 +4,73 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"net"
 	"os"
 )
 
 import (
-	"./tools"
+	"./engine"
 )
 
-var server tools.Server
-
-func RunMessage(control net.Listener) {
-	for {
-		client, err := control.Accept()
-		if err != nil {
-			log.Fatalln("control accept failed:", err)
-		}
-
-		log.Println("new server:", client.RemoteAddr().String())
-
-		go server.AddRouter(client)
-	}
+type SourceConfig struct {
+	Category string
+	Location string
+	Protocol string
 }
 
-func RunServerMode(config tools.TunConfig) {
-	var listener net.Listener
-	var err error
+type RouterConfig struct {
+	Domains []string
+}
 
-	listener, err = net.Listen("tcp", config.DataInf)
-	if err != nil {
-		log.Fatalln("listen failed:", err)
+type ItemConifg struct {
+	Source *SourceConfig
+	Router *RouterConfig
+}
+
+type TunConfig struct {
+	Sources []ItemConifg
+}
+
+var eng engine.Engine
+var config TunConfig
+
+func RunServerMode(config TunConfig) {
+	router := &engine.Router{}
+	router.Init()
+	eng.SetRouter(router)
+
+	log.Println("prepare...", config)
+
+	for _, v := range config.Sources {
+		if v.Source == nil {
+			log.Println("CONF:", "source is nil", v)
+			continue
+		}
+		switch v.Source.Category {
+		case "Socks5":
+			sour := &engine.Socks5Source{}
+			sour.SetAddress(v.Source.Location)
+			eng.AddSource(sour)
+		case "ConnectTunnel":
+			sour := &engine.Tun{}
+			sour.SetAddress("Client", v.Source.Location)
+			sour.SetRouter(router)
+			var item engine.RouterItem
+			item.Domains = v.Router.Domains
+			sour.SetRouterItem(item)
+
+			eng.AddSource(sour)
+		case "ListenTunnel":
+			sour := &engine.Tun{}
+			sour.SetAddress("Server", v.Source.Location)
+			eng.AddSource(sour)
+		}
 	}
 
-	control, err := net.Listen("tcp", config.MessageInf)
-	if err != nil {
-		log.Fatalln("control failed:", err)
-	}
-
-	log.Println("connent...")
-
-	server.ConnectRouters()
+	router.SetDefault(&engine.DefaultNetwork{})
 
 	log.Println("running...")
 
-	go RunMessage(control)
-
-	for {
-		client, err := listener.Accept()
-		if err != nil {
-			log.Fatalln("accept failed:", err)
-		}
-
-		log.Println("new connection:", client.RemoteAddr().String())
-
-		go server.TransitSocks5(client)
-	}
+	eng.Run()
 }
 
 func main() {
@@ -71,11 +83,11 @@ func main() {
 		log.Fatalln(os.Args[1], "file not found")
 	}
 
-	var config tools.TunConfig
 	err = json.Unmarshal(buffer, &config)
 	if err != nil {
 		log.Fatalln("config:", err)
 	}
 
+	eng.Init()
 	RunServerMode(config)
 }

@@ -1,4 +1,4 @@
-package tools
+package engine
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ type ChannelConn struct {
 	data      []byte
 }
 
-func CreateChannel() net.Conn {
+func NewChannelConn() net.Conn {
 	return &ChannelConn{make(chan []byte, 30), true, []byte{}}
 }
 

@@ -1,0 +1,17 @@
+{
+    "Sources": [
+        {
+            "Source": {
+                "Category": "ListenTunnel",
+                "Location": "127.0.0.1:8081",
+                "Protocol": "tcp"
+            },
+            "Router": {
+                "Domains": [
+                    ".*.baidu.com",
+                    "*.google.com"
+                ]
+            }
+        }
+    ]
+}
