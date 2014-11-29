@@ -6,16 +6,13 @@ import (
 	"sync/atomic"
 )
 
-const (
-	CommandConnect = 1
-)
-
 type Tun struct {
 	stream  chan FromConn
 	address string
 	mode    string
 	item    RouterItem
 	router  *Router
+	def     RouterItem
 }
 
 func (t *Tun) SetAddress(mode string, address string) {
@@ -26,22 +23,36 @@ func (t *Tun) SetAddress(mode string, address string) {
 func (t *Tun) SetRouterItem(item RouterItem) {
 	t.item = item
 }
+func (t *Tun) SetDefault(def RouterItem) {
+	log.Println("SetDefault:", def)
+	t.def = def
+}
 
 func (t *Tun) SetRouter(router *Router) {
 	t.router = router
 }
 
 func (t *Tun) Run(stream chan FromConn) {
+	t.stream = stream
+
 	if t.mode == "Client" {
 		conn, err := net.Dial("tcp", t.address)
 		if err != nil {
 			log.Println("Tun Dial:", err, t.address)
 			return
 		}
-		loop := NewTunnLoop(conn, t.stream)
-		item := t.item
-		item.network = NewTunNetwork(loop)
-		t.router.AddRouter(item)
+		loop := NewTunLoop(conn, t.stream, t.router)
+
+		if len(t.item.Domains) > 0 {
+			item := t.item
+			item.network = NewTunNetwork(loop)
+			t.router.AddRouter(t.item)
+		}
+
+		if len(t.def.Domains) > 0 {
+			loop.Register(t.def)
+		}
+
 		go loop.Run()
 	} else {
 		ln, err := net.Listen("tcp", t.address)
@@ -49,13 +60,11 @@ func (t *Tun) Run(stream chan FromConn) {
 			return
 		}
 
-		t.stream = stream
-
 		for {
 			conn, err := ln.Accept()
 			log.Println("One Client UP", err)
 			if err == nil {
-				go NewTunnLoop(conn, t.stream).Run()
+				go NewTunLoop(conn, t.stream, t.router).Run()
 			}
 		}
 	}
@@ -67,14 +76,16 @@ type TunLoop struct {
 	id     uint64
 	ctx    map[uint64]net.Conn
 	tunnel *TunConn
+	router *Router
 }
 
-func NewTunnLoop(conn net.Conn, stream chan FromConn) *TunLoop {
+func NewTunLoop(conn net.Conn, stream chan FromConn, router *Router) *TunLoop {
 	loop := &TunLoop{}
 	loop.conn = conn
 	loop.stream = stream
 	loop.ctx = map[uint64]net.Conn{}
 	loop.tunnel = NewTunConn(loop.conn, 0)
+	loop.router = router
 	return loop
 }
 
@@ -95,6 +106,14 @@ func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 
 	conn := NewPipeConn(ch, tu)
 	return conn, nil
+}
+
+func (t *TunLoop) Register(item RouterItem) {
+	var pkg Package
+	pkg.Command = PkgCommandRegister
+	pkg.Router = &item
+
+	t.tunnel.WritePackage(&pkg)
 }
 
 func (t *TunLoop) Run() {
@@ -134,11 +153,17 @@ func (t *TunLoop) Run() {
 				// delete the ctx item
 				continue
 			}
-		case PkgCommandRouter:
-			/*if pkg.Router == nil {
+		case PkgCommandRegister:
+			if pkg.Router == nil || pkg.Router.Domains == nil {
+				log.Println("Register: router is nil")
 				continue
 			}
-			Router*/
+
+			var item RouterItem
+			item.Domains = pkg.Router.Domains
+			item.network = NewTunNetwork(t)
+			t.router.AddRouter(item)
+			log.Println("Add Client Router:", item)
 		}
 	}
 }

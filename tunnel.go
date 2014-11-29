@@ -28,14 +28,14 @@ type ItemConifg struct {
 
 type TunConfig struct {
 	Sources []ItemConifg
+	Default *RouterConfig
 }
 
 var eng engine.Engine
 var config TunConfig
 
 func RunServerMode(config TunConfig) {
-	router := &engine.Router{}
-	router.Init()
+	router := engine.NewRouter()
 	eng.SetRouter(router)
 
 	log.Println("prepare...", config)
@@ -54,14 +54,23 @@ func RunServerMode(config TunConfig) {
 			sour := &engine.Tun{}
 			sour.SetAddress("Client", v.Source.Location)
 			sour.SetRouter(router)
-			var item engine.RouterItem
-			item.Domains = v.Router.Domains
-			sour.SetRouterItem(item)
+			if v.Router != nil {
+				var item engine.RouterItem
+				item.Domains = v.Router.Domains
+				sour.SetRouterItem(item)
+			}
+
+			if config.Default != nil {
+				var def engine.RouterItem
+				def.Domains = config.Default.Domains
+				sour.SetDefault(def)
+			}
 
 			eng.AddSource(sour)
 		case "ListenTunnel":
 			sour := &engine.Tun{}
 			sour.SetAddress("Server", v.Source.Location)
+			sour.SetRouter(router)
 			eng.AddSource(sour)
 		}
 	}

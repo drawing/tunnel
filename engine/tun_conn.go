@@ -14,7 +14,7 @@ const (
 	PkgCommandConnect = iota
 	PkgCommandData
 	PkgCommandClose
-	PkgCommandRouter
+	PkgCommandRegister
 )
 
 type Package struct {
@@ -22,7 +22,7 @@ type Package struct {
 	Id      uint64
 	Data    []byte
 	Loc     *Location
-	// Router  *RouterConfig
+	Router  *RouterItem
 }
 
 type TunConn struct {

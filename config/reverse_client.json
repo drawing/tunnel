@@ -1,0 +1,18 @@
+{
+    "Sources": [
+        {
+            "Source": {
+                "Category": "ConnectTunnel",
+                "Location": "127.0.0.1:8081",
+                "Protocol": "tcp"
+            }
+        }
+    ],
+    "Default": {
+        "Domains": [
+            ".*.baidu.com",
+            "*.google.com",
+            ".*"
+        ]
+    }
+}

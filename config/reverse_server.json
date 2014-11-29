@@ -1,0 +1,18 @@
+{
+    "Sources": [
+        {
+            "Source": {
+                "Category": "Socks5",
+                "Location": "127.0.0.1:8080",
+                "Protocol": "tcp"
+            }
+        },
+        {
+            "Source": {
+                "Category": "ListenTunnel",
+                "Location": "127.0.0.1:8081",
+                "Protocol": "tcp"
+            }
+        }
+    ]
+}

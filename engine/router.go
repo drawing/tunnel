@@ -2,7 +2,6 @@ package engine
 
 import (
 	"log"
-	"net"
 	"regexp"
 )
 
@@ -26,15 +25,15 @@ type Router struct {
 }
 
 type RouterItem struct {
-	//match
+	// match use regexp
 	Domains []string
-	iplist  []*net.IPNet
-
 	network Network
 }
 
-func (r *Router) Init() {
+func NewRouter() *Router {
+	r := &Router{}
 	r.dynamic = make([]RouterItem, 0, 10)
+	return r
 }
 
 func (r *Router) SetDefault(network Network) {
@@ -66,18 +65,6 @@ func (r *Router) Match(loc Location) Network {
 					return item.network
 				}
 			}
-			/*
-				ip := net.ParseIP(loc.Address)
-				if ip == nil {
-					log.Println("loc address:", loc.Address)
-					return false
-				}
-				for _, v := range r.iplist {
-					if v.Contains(ip) {
-						return true
-					}
-				}
-			*/
 		}
 	}
 
