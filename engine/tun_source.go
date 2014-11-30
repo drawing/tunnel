@@ -1,6 +1,10 @@
 package engine
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
+	"io/ioutil"
 	"log"
 	"net"
 	"sync"
@@ -14,6 +18,8 @@ type Tun struct {
 	item    RouterItem
 	router  *Router
 	def     RouterItem
+
+	secpath string
 }
 
 func (t *Tun) SetAddress(mode string, address string) {
@@ -24,20 +30,71 @@ func (t *Tun) SetAddress(mode string, address string) {
 func (t *Tun) SetRouterItem(item RouterItem) {
 	t.item = item
 }
+
 func (t *Tun) SetDefault(def RouterItem) {
 	log.Println("SetDefault:", def)
 	t.def = def
+}
+
+func (t *Tun) SetSecPath(secpath string) {
+	t.secpath = secpath
 }
 
 func (t *Tun) SetRouter(router *Router) {
 	t.router = router
 }
 
+func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
+	if t.secpath == "" {
+		return net.Dial(network, address)
+	}
+
+	cert, err := tls.LoadX509KeyPair(t.secpath+"/client.pem", t.secpath+"/client.key")
+	if err != nil {
+		log.Println("LoadX509 fail:", t.secpath+"/client.pem", err)
+		return nil, err
+	}
+
+	config := tls.Config{Certificates: []tls.Certificate{cert}}
+	config.InsecureSkipVerify = true
+	// config.ClientAuth = tls.VerifyClientCertIfGiven
+	return tls.Dial(network, address, &config)
+}
+
+func (t *Tun) SeverListen(network string, address string) (net.Listener, error) {
+	if t.secpath == "" {
+		return net.Listen(network, address)
+	}
+
+	cert, err := tls.LoadX509KeyPair(t.secpath+"/server.pem", t.secpath+"/server.key")
+	if err != nil {
+		log.Println("LoadX509 fail:", t.secpath+"/server.pem", err)
+		return nil, err
+	}
+
+	cabytes, err := ioutil.ReadFile(t.secpath + "/ca.pem")
+	if err != nil {
+		log.Println("LoadX509 ca:", t.secpath+"/ca.pem", err)
+		return nil, err
+	}
+
+	config := tls.Config{Certificates: []tls.Certificate{cert}}
+	config.ClientCAs = x509.NewCertPool()
+	ok := config.ClientCAs.AppendCertsFromPEM(cabytes)
+	if !ok {
+		return nil, errors.New("AppendCertsFromPEM failed")
+	}
+
+	config.ClientAuth = tls.VerifyClientCertIfGiven
+
+	return tls.Listen(network, address, &config)
+}
+
 func (t *Tun) Run(stream chan FromConn) {
 	t.stream = stream
 
 	if t.mode == "Client" {
-		conn, err := net.Dial("tcp", t.address)
+		conn, err := t.ClientDial("tcp", t.address)
 		if err != nil {
 			log.Println("Tun Dial:", err, t.address)
 			return
@@ -47,7 +104,7 @@ func (t *Tun) Run(stream chan FromConn) {
 		if len(t.item.Domains) > 0 {
 			item := t.item
 			item.network = NewTunNetwork(loop)
-			t.router.AddRouter(t.item)
+			t.router.AddRouter(item)
 		}
 
 		if len(t.def.Domains) > 0 {
@@ -56,8 +113,9 @@ func (t *Tun) Run(stream chan FromConn) {
 
 		go loop.Run()
 	} else {
-		ln, err := net.Listen("tcp", t.address)
+		ln, err := t.SeverListen("tcp", t.address)
 		if err != nil {
+			log.Println("SeverListen:", err, t.address)
 			return
 		}
 

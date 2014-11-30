@@ -18,7 +18,7 @@ TODO:
 3. conn quit
 4. sec tunnel
 5. fix. client quit, remove router
-6. fix recycle
+6. recycle
 7. format struct
 */
 
@@ -26,7 +26,7 @@ type SourceConfig struct {
 	Category string
 	Location string
 	Protocol string
-	SecFile  string
+	SecPath  string
 }
 
 type RouterConfig struct {
@@ -77,12 +77,18 @@ func RunServerMode(config TunConfig) {
 				def.Domains = config.Default.Domains
 				sour.SetDefault(def)
 			}
+			if v.Source.SecPath != "" {
+				sour.SetSecPath(v.Source.SecPath)
+			}
 
 			eng.AddSource(sour)
 		case "ListenTunnel":
 			sour := &engine.Tun{}
 			sour.SetAddress("Server", v.Source.Location)
 			sour.SetRouter(router)
+			if v.Source.SecPath != "" {
+				sour.SetSecPath(v.Source.SecPath)
+			}
 			eng.AddSource(sour)
 		}
 	}

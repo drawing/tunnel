@@ -66,6 +66,7 @@ func (conn *TunConn) WritePackage(pkg *Package) (err error) {
 	if !conn.available {
 		return errors.New("EOF")
 	}
+
 	return conn.enc.Encode(pkg)
 }
 
