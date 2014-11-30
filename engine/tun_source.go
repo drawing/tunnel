@@ -3,6 +3,7 @@ package engine
 import (
 	"log"
 	"net"
+	"sync"
 	"sync/atomic"
 )
 
@@ -78,7 +79,9 @@ type TunLoop struct {
 	tunnel *TunConn
 	router *Router
 
-	diff uint64
+	diff  uint64
+	mutex sync.RWMutex
+	UniID uint64
 }
 
 func NewTunLoop(conn net.Conn, stream chan FromConn, router *Router) *TunLoop {
@@ -104,10 +107,9 @@ func NewTunLoop(conn net.Conn, stream chan FromConn, router *Router) *TunLoop {
 		}
 	}
 
-	log.Println(s1, s2, loop.diff)
 	loop.diff = loop.diff << 32
 	loop.id = loop.diff
-	log.Println(s1, s2, loop.diff)
+	loop.UniID = EngineID()
 
 	return loop
 }
@@ -127,7 +129,9 @@ func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 
 	t.tunnel.WritePackage(&pkg)
 
+	t.mutex.Lock()
 	t.ctx[newID] = ch
+	t.mutex.Unlock()
 
 	conn := NewPipeConn(ch, tu)
 	return conn, nil
@@ -146,6 +150,8 @@ func (t *TunLoop) Run() {
 		var pkg Package
 		err := t.tunnel.ReadPackage(&pkg)
 		if err != nil {
+			log.Println("Read tun", err)
+			t.router.RemoveRouter(t.UniID)
 			break
 		}
 
@@ -164,18 +170,28 @@ func (t *TunLoop) Run() {
 			tu := t.tunnel.Clone()
 			tu.SetID(pkg.Id)
 
+			t.mutex.Lock()
 			t.ctx[pkg.Id] = ch
+			t.mutex.Unlock()
 			from.Conn = NewPipeConn(ch, tu)
 
 			t.stream <- from
 		case PkgCommandData:
+			t.mutex.RLock()
 			to, present := t.ctx[pkg.Id]
+			t.mutex.RUnlock()
+
 			if !present {
 				continue
 			}
+
+			log.Println("Data", len(pkg.Data))
+
 			_, err := to.Write(pkg.Data)
 			if err != nil {
-				// delete the ctx item
+				t.mutex.Lock()
+				delete(t.ctx, pkg.Id)
+				t.mutex.Unlock()
 				continue
 			}
 		case PkgCommandRegister:

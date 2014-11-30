@@ -3,6 +3,7 @@ package engine
 import (
 	"log"
 	"regexp"
+	"sync"
 )
 
 type Location struct {
@@ -22,6 +23,8 @@ func (l *Location) String() string {
 type Router struct {
 	dynamic []RouterItem
 	other   Network
+
+	mutex sync.RWMutex
 }
 
 type RouterItem struct {
@@ -42,10 +45,39 @@ func (r *Router) SetDefault(network Network) {
 
 func (r *Router) AddRouter(item RouterItem) {
 	log.Println("AddRouter", item)
+
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	r.dynamic = append(r.dynamic, item)
 }
 
+func (r *Router) RemoveRouter(id uint64) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	index := 0
+	find := false
+
+	for k, v := range r.dynamic {
+		if v.network.ID() == id {
+			find = true
+			index = k
+			break
+		}
+	}
+
+	if find {
+		log.Println("remove router", r.dynamic[index], len(r.dynamic))
+		r.dynamic = append(r.dynamic[0:index], r.dynamic[index+1:]...)
+		log.Println("remove over", index, len(r.dynamic))
+	}
+}
+
 func (r *Router) Match(loc Location) Network {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
 	log.Println("Match", loc, len(r.dynamic))
 	for _, item := range r.dynamic {
 		if loc.Domain != "" {

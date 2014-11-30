@@ -16,6 +16,7 @@ type Source interface {
 
 type Network interface {
 	Dial(loc Location) (net.Conn, error)
+	ID() uint64
 }
 
 type Engine struct {

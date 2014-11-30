@@ -16,3 +16,7 @@ func NewTunNetwork(loop *TunLoop) Network {
 func (n *TunNetwork) Dial(loc Location) (net.Conn, error) {
 	return n.loop.Connect(loc)
 }
+
+func (n *TunNetwork) ID() uint64 {
+	return n.loop.UniID
+}

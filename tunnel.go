@@ -14,10 +14,10 @@ import (
 /*
 TODO:
 1. fix. change id rule
-2. mutex
-3. sec tunnel
-4. conn quit
-5. client quit
+2. fix. mutex
+3. conn quit
+4. sec tunnel
+5. fix. client quit, remove router
 6. fix recycle
 7. format struct
 */
@@ -26,6 +26,7 @@ type SourceConfig struct {
 	Category string
 	Location string
 	Protocol string
+	SecFile  string
 }
 
 type RouterConfig struct {

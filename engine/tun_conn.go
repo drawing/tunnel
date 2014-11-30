@@ -57,10 +57,8 @@ func (conn *TunConn) ReadPackage(pkg *Package) (err error) {
 	if !conn.available {
 		return errors.New("EOF")
 	}
-	log.Println("Begin")
-	d := conn.dec.Decode(pkg)
-	log.Println("TETS:", pkg.Command, d)
-	return d
+
+	return conn.dec.Decode(pkg)
 }
 
 // ensure it 's atomic op
