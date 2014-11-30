@@ -11,14 +11,17 @@ import (
 	"./engine"
 )
 
+/*import (
+	"net/http"
+	_ "net/http/pprof"
+)
+*/
+
 /*
 TODO:
-1. fix. change id rule
-2. fix. mutex
 3. conn quit
-4. sec tunnel
-5. fix. client quit, remove router
 6. recycle
+8. unit test
 7. format struct
 */
 
@@ -114,6 +117,10 @@ func main() {
 	if err != nil {
 		log.Fatalln("config:", err)
 	}
+
+	/*go func() {
+		log.Println(http.ListenAndServe("127.0.0.1:6060", nil))
+	}()*/
 
 	eng.Init()
 	RunServerMode(config)
