@@ -4,15 +4,15 @@
             "Source": {
                 "Category": "Socks5",
                 "Location": "127.0.0.1:8080",
-                "Protocol": "tcp",
-                "SecPath" : "certs"
+                "Protocol": "tcp"
             }
         },
         {
             "Source": {
                 "Category": "ConnectTunnel",
                 "Location": "127.0.0.1:8081",
-                "Protocol": "tcp"
+                "Protocol": "tcp",
+                "SecPath" : "certs"
             },
             "Router": {
                 "Domains": [

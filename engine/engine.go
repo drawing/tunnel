@@ -77,7 +77,7 @@ func (e *Engine) transmit(from net.Conn, to net.Conn) {
 	defer from.Close()
 	defer to.Close()
 
-	trans := make([]byte, 4092)
+	trans := make([]byte, 4096)
 
 	for {
 		length, err := from.Read(trans)

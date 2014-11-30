@@ -45,6 +45,7 @@ func (t *Tun) SetRouter(router *Router) {
 }
 
 func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
+	log.Println("ClientDial secpath=", t.secpath)
 	if t.secpath == "" {
 		return net.Dial(network, address)
 	}
@@ -55,6 +56,7 @@ func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
 		return nil, err
 	}
 
+	log.Println("Tls Running...")
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
 	config.InsecureSkipVerify = true
 	// config.ClientAuth = tls.VerifyClientCertIfGiven
@@ -78,6 +80,7 @@ func (t *Tun) SeverListen(network string, address string) (net.Listener, error) 
 		return nil, err
 	}
 
+	log.Println("Tls Server Running...")
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
 	config.ClientCAs = x509.NewCertPool()
 	ok := config.ClientCAs.AppendCertsFromPEM(cabytes)
@@ -192,6 +195,8 @@ func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 	t.mutex.Unlock()
 
 	conn := NewPipeConn(ch, tu)
+
+	log.Println("CC Map Size=", len(t.ctx))
 	return conn, nil
 }
 
@@ -233,6 +238,8 @@ func (t *TunLoop) Run() {
 			t.mutex.Unlock()
 			from.Conn = NewPipeConn(ch, tu)
 
+			log.Println("SS Map Size=", len(t.ctx))
+
 			t.stream <- from
 		case PkgCommandData:
 			t.mutex.RLock()
@@ -243,7 +250,7 @@ func (t *TunLoop) Run() {
 				continue
 			}
 
-			log.Println("Data", len(pkg.Data))
+			// log.Println("Data", len(pkg.Data))
 
 			_, err := to.Write(pkg.Data)
 			if err != nil {
