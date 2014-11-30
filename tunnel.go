@@ -11,6 +11,17 @@ import (
 	"./engine"
 )
 
+/*
+TODO:
+1. fix. change id rule
+2. mutex
+3. sec tunnel
+4. conn quit
+5. client quit
+6. fix recycle
+7. format struct
+*/
+
 type SourceConfig struct {
 	Category string
 	Location string

@@ -77,6 +77,8 @@ type TunLoop struct {
 	ctx    map[uint64]net.Conn
 	tunnel *TunConn
 	router *Router
+
+	diff uint64
 }
 
 func NewTunLoop(conn net.Conn, stream chan FromConn, router *Router) *TunLoop {
@@ -86,11 +88,34 @@ func NewTunLoop(conn net.Conn, stream chan FromConn, router *Router) *TunLoop {
 	loop.ctx = map[uint64]net.Conn{}
 	loop.tunnel = NewTunConn(loop.conn, 0)
 	loop.router = router
+
+	s1 := conn.LocalAddr().String()
+	s2 := conn.RemoteAddr().String()
+	if len(s1) > len(s2) {
+		loop.diff = 0
+	} else if len(s1) < len(s2) {
+		loop.diff = uint64(s2[len(s1)])
+	} else {
+		for i := 0; i < len(s1); i++ {
+			if s1[i] != s2[i] {
+				loop.diff = uint64(s1[i])
+				break
+			}
+		}
+	}
+
+	log.Println(s1, s2, loop.diff)
+	loop.diff = loop.diff << 32
+	loop.id = loop.diff
+	log.Println(s1, s2, loop.diff)
+
 	return loop
 }
 
 func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
+	// TODO: forbid newID out of bound
 	newID := atomic.AddUint64(&t.id, 1)
+
 	ch := NewChannelConn()
 	tu := t.tunnel.Clone()
 	tu.SetID(newID)
