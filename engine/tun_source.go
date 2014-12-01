@@ -89,7 +89,7 @@ func (t *Tun) SeverListen(network string, address string) (net.Listener, error) 
 		return nil, errors.New("AppendCertsFromPEM failed")
 	}
 
-	config.ClientAuth = tls.VerifyClientCertIfGiven
+	config.ClientAuth = tls.RequireAndVerifyClientCert
 
 	return tls.Listen(network, address, &config)
 }
