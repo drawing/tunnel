@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"log"
 	"net"
 )
 
@@ -14,6 +15,9 @@ func NewTunNetwork(loop *TunLoop) Network {
 }
 
 func (n *TunNetwork) Dial(loc Location) (net.Conn, error) {
+	addr := n.loop.RemoteAddr()
+	log.Println("Redirect:", loc.Network+"@"+loc.String(), "->",
+		addr.Network()+"@"+addr.String())
 	return n.loop.Connect(loc)
 }
 

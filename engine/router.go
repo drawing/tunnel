@@ -78,11 +78,11 @@ func (r *Router) Match(loc Location) Network {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	log.Println("Match", loc, len(r.dynamic))
+	// log.Println("Match", loc, len(r.dynamic))
 	for _, item := range r.dynamic {
 		if loc.Domain != "" {
 			// match domain
-			log.Println("Match 1", item.Domains)
+			// log.Println("Match 1", item.Domains)
 			for _, v := range item.Domains {
 				matched, _ := regexp.MatchString(v, loc.Domain)
 				if matched {

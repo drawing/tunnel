@@ -19,10 +19,9 @@ import (
 
 /*
 TODO:
-3. conn quit
-6. recycle
-8. unit test
-7. format struct
+1. recycle
+2. unit test
+3. format struct
 */
 
 type SourceConfig struct {

@@ -45,8 +45,8 @@ func (t *Tun) SetRouter(router *Router) {
 }
 
 func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
-	log.Println("ClientDial secpath=", t.secpath)
 	if t.secpath == "" {
+		log.Println("Client Running...")
 		return net.Dial(network, address)
 	}
 
@@ -56,7 +56,7 @@ func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
 		return nil, err
 	}
 
-	log.Println("Tls Running...")
+	log.Println("Tls Client Running...")
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
 	config.InsecureSkipVerify = true
 	// config.ClientAuth = tls.VerifyClientCertIfGiven
@@ -65,6 +65,7 @@ func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
 
 func (t *Tun) SeverListen(network string, address string) (net.Listener, error) {
 	if t.secpath == "" {
+		log.Println("Server Running...")
 		return net.Listen(network, address)
 	}
 
@@ -124,9 +125,12 @@ func (t *Tun) Run(stream chan FromConn) {
 
 		for {
 			conn, err := ln.Accept()
-			log.Println("One Client UP", err)
 			if err == nil {
+				log.Println("One Client Enter:",
+					conn.RemoteAddr().Network()+"@"+conn.RemoteAddr().String())
 				go NewTunLoop(conn, t.stream, t.router).Run()
+			} else {
+				log.Println("Client Accept Failed:", err)
 			}
 		}
 	}
@@ -175,6 +179,10 @@ func NewTunLoop(conn net.Conn, stream chan FromConn, router *Router) *TunLoop {
 	return loop
 }
 
+func (t *TunLoop) RemoteAddr() net.Addr {
+	return t.conn.RemoteAddr()
+}
+
 func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 	// TODO: forbid newID out of bound
 	newID := atomic.AddUint64(&t.id, 1)
@@ -220,7 +228,6 @@ func (t *TunLoop) Run() {
 
 		switch pkg.Command {
 		case PkgCommandConnect:
-			log.Println("Connect", pkg)
 			// new connection
 			var from FromConn
 			if pkg.Loc == nil {
@@ -270,6 +277,17 @@ func (t *TunLoop) Run() {
 			item.network = NewTunNetwork(t)
 			t.router.AddRouter(item)
 			log.Println("Add Client Router:", item)
+		case PkgCommandClose:
+			t.mutex.RLock()
+			ch, present := t.ctx[pkg.Id]
+			t.mutex.RUnlock()
+			if !present {
+				continue
+			}
+			ch.Close()
+			t.mutex.Lock()
+			delete(t.ctx, pkg.Id)
+			t.mutex.Unlock()
 		}
 	}
 }

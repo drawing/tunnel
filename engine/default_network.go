@@ -9,7 +9,7 @@ type DefaultNetwork struct {
 }
 
 func (n *DefaultNetwork) Dial(loc Location) (net.Conn, error) {
-	log.Println("Default:", loc)
+	log.Println("Connect:", loc.Network+"@"+loc.String())
 	return net.Dial(loc.Network, loc.String())
 }
 

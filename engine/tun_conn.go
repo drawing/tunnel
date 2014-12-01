@@ -91,7 +91,11 @@ func (conn *TunConn) Write(b []byte) (n int, err error) {
 
 func (conn *TunConn) Close() error {
 	if conn.available {
-		conn.Write([]byte{})
+		pkg := Package{}
+		pkg.Id = conn.id
+		pkg.Command = PkgCommandClose
+
+		conn.WritePackage(&pkg)
 		conn.available = false
 	}
 	return nil

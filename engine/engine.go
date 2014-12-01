@@ -50,8 +50,6 @@ func (e *Engine) Run() error {
 		}
 
 		network := e.router.Match(from.Loc)
-
-		log.Println(from.Loc)
 		if network == nil {
 			continue
 		}

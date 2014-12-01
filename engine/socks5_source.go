@@ -20,10 +20,11 @@ func (s *Socks5Source) SetAddress(addr string) {
 }
 
 func (s *Socks5Source) Run(stream chan FromConn) {
-	log.Println("Socks5Source:", s.address)
+	log.Println("Socks5 Running:", s.address)
+
 	ln, err := net.Listen("tcp", s.address)
 	if err != nil {
-		log.Println("Socks5Source:", "listen failed", s.address, err)
+		log.Println("socks5 listen failed", s.address, err)
 		return
 	}
 
@@ -108,8 +109,6 @@ func (s *Socks5Source) ReadSocks5(socks5 net.Conn) error {
 	var from FromConn
 	from.Loc = loc
 	from.Conn = socks5
-
-	log.Println("socks5 in:", from.Loc)
 
 	// send to engine
 	s.stream <- from
