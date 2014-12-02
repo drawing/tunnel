@@ -44,7 +44,7 @@ func (r *Router) SetDefault(network Network) {
 }
 
 func (r *Router) AddRouter(item RouterItem) {
-	log.Println("AddRouter", item)
+	log.Println("add router:", item.Domains)
 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -68,9 +68,8 @@ func (r *Router) RemoveRouter(id uint64) {
 	}
 
 	if find {
-		log.Println("remove router", r.dynamic[index], len(r.dynamic))
+		log.Println("remove router(", len(r.dynamic), "):", r.dynamic[index].Domains)
 		r.dynamic = append(r.dynamic[0:index], r.dynamic[index+1:]...)
-		log.Println("remove over", index, len(r.dynamic))
 	}
 }
 

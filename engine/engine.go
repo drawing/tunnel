@@ -61,7 +61,7 @@ func (e *Engine) Run() error {
 func (e *Engine) transform(from FromConn, network Network) error {
 	to, err := network.Dial(from.Loc)
 	if err != nil {
-		log.Println("Dail:", from.Loc, "failed,", err)
+		log.Println("Dial:", from.Loc, "failed,", err)
 		return err
 	}
 

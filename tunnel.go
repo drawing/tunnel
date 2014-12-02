@@ -22,6 +22,7 @@ TODO:
 1. recycle
 2. unit test
 3. format struct
+4. visual performance
 */
 
 type SourceConfig struct {
@@ -52,7 +53,7 @@ func RunServerMode(config TunConfig) {
 	router := engine.NewRouter()
 	eng.SetRouter(router)
 
-	log.Println("prepare...", config)
+	log.Println("Prepare...")
 
 	for _, v := range config.Sources {
 		if v.Source == nil {

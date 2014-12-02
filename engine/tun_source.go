@@ -186,6 +186,14 @@ func (t *TunLoop) RemoteAddr() net.Addr {
 func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 	// TODO: forbid newID out of bound
 	newID := atomic.AddUint64(&t.id, 1)
+	if newID == 0 {
+		newID = atomic.AddUint64(&t.id, 1)
+	}
+
+	if (newID & 0xFFFFFFFF) > 0xFFFFFFF {
+		t.id = t.diff
+		newID = atomic.AddUint64(&t.id, 1)
+	}
 
 	ch := NewChannelConn()
 	tu := t.tunnel.Clone()
@@ -204,7 +212,6 @@ func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 
 	conn := NewPipeConn(ch, tu)
 
-	log.Println("CC Map Size=", len(t.ctx))
 	return conn, nil
 }
 
@@ -221,7 +228,7 @@ func (t *TunLoop) Run() {
 		var pkg Package
 		err := t.tunnel.ReadPackage(&pkg)
 		if err != nil {
-			log.Println("Read tun", err)
+			log.Println("Read Over:", err)
 			t.router.RemoveRouter(t.UniID)
 			break
 		}
@@ -244,8 +251,6 @@ func (t *TunLoop) Run() {
 			t.ctx[pkg.Id] = ch
 			t.mutex.Unlock()
 			from.Conn = NewPipeConn(ch, tu)
-
-			log.Println("SS Map Size=", len(t.ctx))
 
 			t.stream <- from
 		case PkgCommandData:
@@ -276,7 +281,7 @@ func (t *TunLoop) Run() {
 			item.Domains = pkg.Router.Domains
 			item.network = NewTunNetwork(t)
 			t.router.AddRouter(item)
-			log.Println("Add Client Router:", item)
+			// log.Println("Add Client Router:", item)
 		case PkgCommandClose:
 			t.mutex.RLock()
 			ch, present := t.ctx[pkg.Id]

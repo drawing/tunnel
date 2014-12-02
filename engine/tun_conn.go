@@ -90,14 +90,16 @@ func (conn *TunConn) Write(b []byte) (n int, err error) {
 }
 
 func (conn *TunConn) Close() error {
-	if conn.available {
+	defer func() { recover() }()
+
+	if conn.id != 0 {
 		pkg := Package{}
 		pkg.Id = conn.id
 		pkg.Command = PkgCommandClose
 
 		conn.WritePackage(&pkg)
-		conn.available = false
 	}
+	conn.available = false
 	return nil
 }
 
