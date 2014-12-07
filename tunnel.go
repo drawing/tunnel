@@ -96,7 +96,7 @@ func RunServerMode(config TunConfig) {
 		}
 	}
 
-	router.SetDefault(&engine.DefaultNetwork{})
+	router.SetDefault(engine.NewDefaultNetwork())
 
 	log.Println("running...")
 
