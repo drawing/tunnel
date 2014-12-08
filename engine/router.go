@@ -33,6 +33,12 @@ type RouterItem struct {
 	network Network
 }
 
+func NewRouterItem(domains []string, network Network) *RouterItem {
+	r := &RouterItem{}
+	r.Domains = domains
+	r.network = network
+	return r
+}
 func NewRouter() *Router {
 	r := &Router{}
 	r.dynamic = make([]RouterItem, 0, 10)

@@ -12,6 +12,16 @@
                     "*.google.com"
                 ]
             }
+        },
+        {
+            "Source": {
+                "Category": "CommandNetwork"
+            },
+            "Router": {
+                "Domains": [
+                    "www.command.com"
+                ]
+            }
         }
     ]
 }

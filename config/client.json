@@ -15,8 +15,6 @@
             },
             "Router": {
                 "Domains": [
-                    ".*.baidu.com",
-                    "*.google.com",
                     ".*"
                 ]
             }

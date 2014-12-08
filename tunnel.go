@@ -93,6 +93,9 @@ func RunServerMode(config TunConfig) {
 				sour.SetSecPath(v.Source.SecPath)
 			}
 			eng.AddSource(sour)
+		case "CommandNetwork":
+			item := engine.NewRouterItem(v.Router.Domains, &engine.CommandNetwork{})
+			router.AddRouter(*item)
 		}
 	}
 
