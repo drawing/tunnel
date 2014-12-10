@@ -8,16 +8,17 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 type Command struct {
 	chRead  net.Conn
 	chWrite net.Conn
+
+	EmpytConn
 }
 
 func NewCommand() net.Conn {
-	cmd := &Command{NewChannelConn(), NewChannelConn()}
+	cmd := &Command{NewChannelConn(), NewChannelConn(), EmpytConn{}}
 	go cmd.doRequest()
 	return cmd
 }
@@ -82,27 +83,5 @@ func (conn *Command) Write(b []byte) (n int, err error) {
 func (conn *Command) Close() error {
 	conn.chWrite.Close()
 	conn.chRead.Close()
-	return nil
-}
-
-// not implement
-func (conn *Command) LocalAddr() net.Addr {
-	log.Fatalln("Command LocalAddr not impement")
-	return nil
-}
-func (conn *Command) RemoteAddr() net.Addr {
-	log.Fatalln("Command RemoteAddr not impement")
-	return nil
-}
-func (conn *Command) SetDeadline(t time.Time) error {
-	log.Fatalln("Command SetDeadline not impement")
-	return nil
-}
-func (conn *Command) SetReadDeadline(t time.Time) error {
-	log.Fatalln("Command SetReadDeadline not impement")
-	return nil
-}
-func (conn *Command) SetWriteDeadline(t time.Time) error {
-	log.Fatalln("Command SetWriteDeadline not impement")
 	return nil
 }

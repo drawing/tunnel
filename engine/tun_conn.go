@@ -3,9 +3,7 @@ package engine
 import (
 	"encoding/gob"
 	"errors"
-	"log"
 	"net"
-	"time"
 )
 
 const MaxBufferSize = 4092
@@ -31,12 +29,14 @@ type TunConn struct {
 	dec       *gob.Decoder
 	enc       *gob.Encoder
 	available bool
+
+	EmpytConn
 }
 
 func NewTunConn(conn net.Conn, id uint64) *TunConn {
 	dec := gob.NewDecoder(conn)
 	enc := gob.NewEncoder(conn)
-	return &TunConn{id, conn, dec, enc, true}
+	return &TunConn{id, conn, dec, enc, true, EmpytConn{}}
 }
 
 func (conn *TunConn) SetID(id uint64) {
@@ -100,33 +100,5 @@ func (conn *TunConn) Close() error {
 		conn.WritePackage(&pkg)
 	}
 	conn.available = false
-	return nil
-}
-
-// not implement
-
-// read normal data
-func (conn *TunConn) Read(b []byte) (n int, err error) {
-	log.Fatalln("TunConn LocalAddr not impement")
-	return n, err
-}
-func (conn *TunConn) LocalAddr() net.Addr {
-	log.Fatalln("TunConn LocalAddr not impement")
-	return nil
-}
-func (conn *TunConn) RemoteAddr() net.Addr {
-	log.Fatalln("TunConn RemoteAddr not impement")
-	return nil
-}
-func (conn *TunConn) SetDeadline(t time.Time) error {
-	log.Fatalln("TunConn SetDeadline not impement")
-	return nil
-}
-func (conn *TunConn) SetReadDeadline(t time.Time) error {
-	log.Fatalln("TunConn SetReadDeadline not impement")
-	return nil
-}
-func (conn *TunConn) SetWriteDeadline(t time.Time) error {
-	log.Fatalln("TunConn SetWriteDeadline not impement")
 	return nil
 }

@@ -4,17 +4,18 @@ import (
 	"errors"
 	"log"
 	"net"
-	"time"
 )
 
 type ChannelConn struct {
 	c         chan []byte
 	available bool
 	data      []byte
+
+	EmpytConn
 }
 
 func NewChannelConn() net.Conn {
-	return &ChannelConn{make(chan []byte, 30), true, []byte{}}
+	return &ChannelConn{make(chan []byte, 30), true, []byte{}, EmpytConn{}}
 }
 
 func (conn *ChannelConn) Read(b []byte) (n int, err error) {
@@ -80,27 +81,5 @@ func (conn *ChannelConn) Close() error {
 		close(conn.c)
 	}
 
-	return nil
-}
-
-// not implement
-func (conn *ChannelConn) LocalAddr() net.Addr {
-	log.Fatalln("ChannelConn LocalAddr not impement")
-	return nil
-}
-func (conn *ChannelConn) RemoteAddr() net.Addr {
-	log.Fatalln("ChannelConn RemoteAddr not impement")
-	return nil
-}
-func (conn *ChannelConn) SetDeadline(t time.Time) error {
-	log.Fatalln("ChannelConn SetDeadline not impement")
-	return nil
-}
-func (conn *ChannelConn) SetReadDeadline(t time.Time) error {
-	log.Fatalln("ChannelConn SetReadDeadline not impement")
-	return nil
-}
-func (conn *ChannelConn) SetWriteDeadline(t time.Time) error {
-	log.Fatalln("ChannelConn SetWriteDeadline not impement")
 	return nil
 }
