@@ -9,6 +9,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Tun struct {
@@ -44,6 +45,47 @@ func (t *Tun) SetRouter(router *Router) {
 	t.router = router
 }
 
+func (t *Tun) ClientWrapper() {
+
+	var lastConnect time.Time
+	var duration time.Duration = 1
+	for {
+		lastConnect = time.Now()
+
+		conn, err := t.ClientDial("tcp", t.address)
+		if err != nil {
+			log.Println("Tun Dial:", err, t.address)
+			duration *= 2
+			time.Sleep(duration)
+			continue
+		}
+		loop := NewTunLoop(conn, t.stream, t.router)
+
+		if len(t.item.Domains) > 0 {
+			item := t.item
+			item.network = NewTunNetwork(loop)
+			t.router.AddRouter(item)
+		}
+
+		if len(t.def.Domains) > 0 {
+			loop.Register(t.def)
+		}
+
+		go loop.Run()
+
+		log.Println("Conn", t.address, "disconnected")
+
+		// Less than 20 minutes running time considered a failure
+		if time.Since(lastConnect).Minutes() < 20 {
+			time.Sleep(duration)
+			duration *= 2
+			continue
+		}
+
+		duration = 1
+	}
+}
+
 func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
 	if t.secpath == "" {
 		log.Println("Client Running...")
@@ -57,6 +99,7 @@ func (t *Tun) ClientDial(network string, address string) (net.Conn, error) {
 	}
 
 	log.Println("Tls Client Running...")
+	log.Println("Try Connect", t.address)
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
 	config.InsecureSkipVerify = true
 	// config.ClientAuth = tls.VerifyClientCertIfGiven
@@ -98,24 +141,7 @@ func (t *Tun) Run(stream chan FromConn) {
 	t.stream = stream
 
 	if t.mode == "Client" {
-		conn, err := t.ClientDial("tcp", t.address)
-		if err != nil {
-			log.Println("Tun Dial:", err, t.address)
-			return
-		}
-		loop := NewTunLoop(conn, t.stream, t.router)
-
-		if len(t.item.Domains) > 0 {
-			item := t.item
-			item.network = NewTunNetwork(loop)
-			t.router.AddRouter(item)
-		}
-
-		if len(t.def.Domains) > 0 {
-			loop.Register(t.def)
-		}
-
-		go loop.Run()
+		go t.ClientWrapper()
 	} else {
 		ln, err := t.SeverListen("tcp", t.address)
 		if err != nil {
