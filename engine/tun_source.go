@@ -77,8 +77,8 @@ func (t *Tun) ClientWrapper() {
 
 		// Less than 20 minutes running time considered a failure
 		if time.Since(lastConnect).Minutes() < 20 {
-			time.Sleep(duration)
 			duration *= 2
+			time.Sleep(duration)
 			continue
 		}
 
