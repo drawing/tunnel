@@ -71,7 +71,7 @@ func (t *Tun) ClientWrapper() {
 			loop.Register(t.def)
 		}
 
-		go loop.Run()
+		loop.Run()
 
 		log.Println("Conn", t.address, "disconnected")
 
