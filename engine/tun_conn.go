@@ -2,7 +2,6 @@ package engine
 
 import (
 	"encoding/gob"
-	"errors"
 	"net"
 )
 
@@ -55,7 +54,7 @@ func (conn *TunConn) Clone() *TunConn {
 
 func (conn *TunConn) ReadPackage(pkg *Package) (err error) {
 	if !conn.available {
-		return errors.New("EOF")
+		return ErrorEOF
 	}
 
 	return conn.dec.Decode(pkg)
@@ -64,7 +63,7 @@ func (conn *TunConn) ReadPackage(pkg *Package) (err error) {
 // ensure it 's atomic op
 func (conn *TunConn) WritePackage(pkg *Package) (err error) {
 	if !conn.available {
-		return errors.New("EOF")
+		return ErrorEOF
 	}
 
 	return conn.enc.Encode(pkg)
@@ -73,7 +72,7 @@ func (conn *TunConn) WritePackage(pkg *Package) (err error) {
 // write normal data
 func (conn *TunConn) Write(b []byte) (n int, err error) {
 	if !conn.available {
-		return 0, errors.New("EOF")
+		return 0, ErrorEOF
 	}
 
 	pkg := Package{}

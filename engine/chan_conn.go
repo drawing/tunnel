@@ -20,7 +20,7 @@ func NewChannelConn() net.Conn {
 
 func (conn *ChannelConn) Read(b []byte) (n int, err error) {
 	if !conn.available {
-		return 0, errors.New("EOF")
+		return 0, ErrorEOF
 	}
 
 	if len(b) == 0 {
@@ -31,7 +31,7 @@ func (conn *ChannelConn) Read(b []byte) (n int, err error) {
 		var ok bool
 		conn.data, ok = <-conn.c
 		if !ok {
-			return 0, errors.New("EOF")
+			return 0, ErrorEOF
 		}
 	}
 
@@ -56,12 +56,12 @@ func (conn *ChannelConn) Write(b []byte) (n int, err error) {
 		if msg != nil {
 			log.Println("Channel Write", msg)
 			n = 0
-			err = errors.New("EOF")
+			err = ErrorEOF
 		}
 	}()
 
 	if !conn.available {
-		return 0, errors.New("EOF")
+		return 0, ErrorEOF
 	}
 
 	data := make([]byte, len(b))
