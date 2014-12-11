@@ -230,7 +230,12 @@ func (t *TunLoop) Connect(loc Location) (net.Conn, error) {
 	pkg.Id = newID
 	pkg.Loc = &loc
 
-	t.tunnel.WritePackage(&pkg)
+	err := t.tunnel.WritePackage(&pkg)
+	if err != nil {
+		log.Println("Redirect Fail:", loc.String())
+		t.tunnel.Close()
+		return nil, err
+	}
 
 	t.mutex.Lock()
 	t.ctx[newID] = ch

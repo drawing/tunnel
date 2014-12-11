@@ -57,7 +57,11 @@ func (conn *TunConn) ReadPackage(pkg *Package) (err error) {
 		return ErrorEOF
 	}
 
-	return conn.dec.Decode(pkg)
+	err = conn.dec.Decode(pkg)
+	if err != nil {
+		conn.id = 0
+	}
+	return err
 }
 
 // ensure it 's atomic op
@@ -66,7 +70,12 @@ func (conn *TunConn) WritePackage(pkg *Package) (err error) {
 		return ErrorEOF
 	}
 
-	return conn.enc.Encode(pkg)
+	err = conn.enc.Encode(pkg)
+	if err != nil {
+		conn.id = 0
+	}
+
+	return err
 }
 
 // write normal data
@@ -97,7 +106,10 @@ func (conn *TunConn) Close() error {
 		pkg.Command = PkgCommandClose
 
 		conn.WritePackage(&pkg)
+	} else {
+		conn.c.Close()
 	}
+
 	conn.available = false
 	return nil
 }
