@@ -48,7 +48,7 @@ func (t *Tun) SetRouter(router *Router) {
 func (t *Tun) ClientWrapper() {
 
 	var lastConnect time.Time
-	var duration time.Duration = 1
+	var duration time.Duration = time.Second
 	for {
 		lastConnect = time.Now()
 
@@ -82,7 +82,7 @@ func (t *Tun) ClientWrapper() {
 			continue
 		}
 
-		duration = 1
+		duration = time.Second
 	}
 }
 
