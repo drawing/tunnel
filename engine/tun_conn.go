@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/gob"
 	"net"
+	"time"
 )
 
 const MaxBufferSize = 4092
@@ -35,6 +36,7 @@ type TunConn struct {
 func NewTunConn(conn net.Conn, id uint64) *TunConn {
 	dec := gob.NewDecoder(conn)
 	enc := gob.NewEncoder(conn)
+
 	return &TunConn{id, conn, dec, enc, true, EmpytConn{}}
 }
 
@@ -70,6 +72,7 @@ func (conn *TunConn) WritePackage(pkg *Package) (err error) {
 		return ErrorEOF
 	}
 
+	conn.c.SetWriteDeadline(time.Now().Add(time.Second * 5))
 	err = conn.enc.Encode(pkg)
 	if err != nil {
 		conn.id = 0
