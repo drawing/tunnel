@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/tls"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -88,6 +89,23 @@ func handleConnection(conn net.Conn) {
 
 	log.Println(ip, port)
 
+	if port == "80" {
+		doHTTPRequest(conn, 1, ip)
+	} else if port == "443" {
+		doHTTPSRequest(conn, ip)
+	} else {
+		log.Println("unkown protocol", ip, port)
+	}
+}
+
+func doHTTPSRequest(conn net.Conn, ip string) {
+	// var config tls.Config
+	config := &tls.Config{Certificates: []tls.Certificate{ /*cert*/ }}
+	sec := tls.Server(conn, config)
+	doHTTPRequest(sec, 2, ip)
+}
+
+func doHTTPRequest(conn net.Conn, protocol int, ip string) {
 	reader := bufio.NewReader(conn)
 	req, err := http.ReadRequest(reader)
 	if err != nil {
@@ -95,17 +113,30 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	log.Println("REQ:", req)
+	var url string
+	if protocol == 1 {
+		url = "http://" + ip + req.RequestURI
+	} else {
+		url = "https://" + ip + req.RequestURI
+	}
+
+	log.Println("REQ:", url)
 
 	client := &http.Client{}
 
 	// construct request
+	send_req, err := http.NewRequest(req.Method, url, req.Body)
+	if err != nil {
+		log.Println("new req:", err)
+		return
+	}
+	send_req.Header = req.Header
 
 	// redirect header
 
 	// redirect body
 
-	resp, err := client.Do(req)
+	resp, err := client.Do(send_req)
 	if err != nil {
 		log.Println("request failed:", err)
 		return
