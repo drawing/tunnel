@@ -11,6 +11,8 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+
+	"./ca"
 )
 
 func ReadSocks5(conn net.Conn) (ip, port string, err error) {
@@ -100,7 +102,19 @@ func handleConnection(conn net.Conn) {
 
 func doHTTPSRequest(conn net.Conn, ip string) {
 	// var config tls.Config
-	config := &tls.Config{Certificates: []tls.Certificate{ /*cert*/ }}
+	pem, key, err := ca.Generate()
+	if err != nil {
+		log.Println("generate cert", err)
+		return
+	}
+
+	cert, err := tls.X509KeyPair(pem, key)
+	if err != nil {
+		log.Println("load cert", err)
+		return
+	}
+
+	config := &tls.Config{Certificates: []tls.Certificate{cert}}
 	sec := tls.Server(conn, config)
 	doHTTPRequest(sec, 2, ip)
 }
@@ -123,6 +137,13 @@ func doHTTPRequest(conn net.Conn, protocol int, ip string) {
 	log.Println("REQ:", url)
 
 	client := &http.Client{}
+
+	if protocol == 2 {
+		tr := &http.Transport{
+			DisableCompression: true,
+		}
+		client.Transport = tr
+	}
 
 	// construct request
 	send_req, err := http.NewRequest(req.Method, url, req.Body)
