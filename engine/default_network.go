@@ -4,6 +4,8 @@ import (
 	"errors"
 	"log"
 	"net"
+	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -26,6 +28,16 @@ func NewDefaultNetwork() *DefaultNetwork {
 
 func (n *DefaultNetwork) Dial(loc Location) (net.Conn, error) {
 	log.Println("Connect:", loc.Network+"@"+loc.String())
+
+	http_proxy := os.Getenv("http_proxy")
+	if len(http_proxy) != 0 {
+		strs := strings.Split(http_proxy, ":")
+		if len(strs) > 1 {
+			loc.Address = strs[0]
+			loc.Port = strs[1]
+			log.Println("Use Proxy:", loc.Address, loc.Port)
+		}
+	}
 
 	address := loc.Address
 
