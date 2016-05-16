@@ -61,6 +61,10 @@ func RunServerMode(config TunConfig) {
 			continue
 		}
 		switch v.Source.Category {
+		case "HTTPProxy":
+			sour := &engine.HttpSource{}
+			sour.SetAddress(v.Source.Location)
+			eng.AddSource(sour)
 		case "Socks5":
 			sour := &engine.Socks5Source{}
 			sour.SetAddress(v.Source.Location)
