@@ -65,7 +65,13 @@ func (s *HttpSource) ReadHttp(http_client net.Conn) error {
 		loc.Port = "80"
 	} else {
 		loc.Domain = strs[0]
-		loc.Port = strs[2]
+		loc.Port = strs[1]
+	}
+
+	if req.Method == "CONNECT" {
+		client.(*PeekConn).Clear()
+		client.Write([]byte("HTTP/1.1 200 Connection Established\r\n\r\n"))
+		log.Println("Connect Method")
 	}
 
 	/*

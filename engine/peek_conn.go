@@ -20,6 +20,10 @@ func NewPeekConn(reader net.Conn, writer net.Conn) net.Conn {
 	return &PeekConn{reader, writer, bytes.NewBuffer(nil), true, EmpytConn{}}
 }
 
+func (conn *PeekConn) Clear() {
+	conn.buf.Reset()
+}
+
 func (conn *PeekConn) Read(b []byte) (n int, err error) {
 	if conn.PeekMode {
 		n, err = conn.reader.Read(b)
