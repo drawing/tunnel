@@ -59,6 +59,10 @@ func (t *Tun) ClientWrapper() {
 			time.Sleep(duration)
 			continue
 		}
+
+		conn.(*net.TCPConn).SetKeepAlive(true)
+		conn.(*net.TCPConn).SetKeepAlivePeriod(time.Duration(60) * time.Second)
+
 		loop := NewTunLoop(conn, t.stream, t.router)
 
 		if len(t.item.Domains) > 0 {
@@ -154,6 +158,8 @@ func (t *Tun) Run(stream chan FromConn) {
 			if err == nil {
 				log.Println("One Client Enter:",
 					conn.RemoteAddr().Network()+"@"+conn.RemoteAddr().String())
+				conn.(*net.TCPConn).SetKeepAlive(true)
+				conn.(*net.TCPConn).SetKeepAlivePeriod(time.Duration(60) * time.Second)
 				go NewTunLoop(conn, t.stream, t.router).Run()
 			} else {
 				log.Println("Client Accept Failed:", err)
