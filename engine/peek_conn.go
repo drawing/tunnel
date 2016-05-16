@@ -23,7 +23,7 @@ func NewPeekConn(reader net.Conn, writer net.Conn) net.Conn {
 func (conn *PeekConn) Read(b []byte) (n int, err error) {
 	if conn.PeekMode {
 		n, err = conn.reader.Read(b)
-		if err != nil {
+		if err == nil {
 			conn.buf.Write(b[:n])
 		}
 		return n, err
